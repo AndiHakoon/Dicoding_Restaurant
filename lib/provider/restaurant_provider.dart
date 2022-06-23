@@ -86,18 +86,22 @@ class RestaurantProvider extends ChangeNotifier {
 
   Future<dynamic> _fetchDetail(String id) async {
     try {
-      _detailResult = await apiService.get(id);
+      _state = ResultState.loading;
 
-      if (!_detailResult.error) {
+      notifyListeners();
+      final detail = await apiService.get(id);
+
+      if (detail.error == false) {
         _state = ResultState.hasData;
-      } else {
-        _state = ResultState.noData;
-        _message = 'Empty Data';
+
+        notifyListeners();
+        return _detailResult = detail;
       }
     } catch (e) {
       _state = ResultState.error;
-      _message = 'Error --> $e';
+
       notifyListeners();
+      return _message = 'Error --> $e';
     }
   }
 }
