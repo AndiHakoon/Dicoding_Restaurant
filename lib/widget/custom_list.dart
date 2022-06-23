@@ -150,31 +150,32 @@ class _FavButtonState extends State<FavButton> {
       return Consumer<DatabaseProvider>(
         builder: (context, provider, child) {
           return FutureBuilder<bool>(
-              future: provider.isFavorite(widget.item.id),
-              builder: ((context, snapshot) {
-                var isFavorite = snapshot.data ?? false;
+            future: provider.isFavorite(widget.item.id),
+            builder: ((context, snapshot) {
+              var isFavorite = snapshot.data ?? false;
 
-                Icon iconSprite = isFavorite
-                    ? const Icon(Icons.favorite, color: secondaryColor)
-                    : const Icon(Icons.favorite_outline);
+              Icon iconSprite = isFavorite
+                  ? const Icon(Icons.favorite, color: secondaryColor)
+                  : const Icon(Icons.favorite_outline);
 
-                return GestureDetector(
-                  onTap: () => setState(() {
-                    isFavorite = !isFavorite;
-                    if (isFavorite) {
-                      provider.addFavorite(widget.item);
-                      toast("Added");
-                    } else {
-                      provider.removeFavorite(widget.item.id);
-                      toast("Removed");
-                    }
-                  }),
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 20, right: 20),
-                    child: iconSprite,
-                  ),
-                );
-              }));
+              return GestureDetector(
+                onTap: () => setState(() {
+                  isFavorite = !isFavorite;
+                  if (isFavorite) {
+                    provider.addFavorite(widget.item);
+                    toast("Added");
+                  } else {
+                    provider.removeFavorite(widget.item.id);
+                    toast("Removed");
+                  }
+                }),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20, right: 20),
+                  child: iconSprite,
+                ),
+              );
+            }),
+          );
         },
       );
     });
