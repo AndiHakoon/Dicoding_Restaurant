@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:restaurant2/data/model/detail.dart';
 import 'package:restaurant2/provider/restaurant_provider.dart';
+import 'package:restaurant2/utils/constants.dart';
 import 'package:restaurant2/utils/result_state.dart';
 import 'package:restaurant2/widget/item_bar.dart';
 
@@ -18,7 +19,6 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
-  static const _url = 'https://restaurant-api.dicoding.dev/images/small';
   var idSelected = 0;
 
   @override
@@ -123,7 +123,7 @@ class _DetailPageState extends State<DetailPage> {
                 Hero(
                   tag: restaurant.pictureId,
                   child: Image.network(
-                    '$_url/${restaurant.pictureId}',
+                    '$imageUrl/${restaurant.pictureId}',
                     width: double.infinity,
                   ),
                 ),

@@ -1,3 +1,4 @@
+import 'package:restaurant2/utils/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PreferencesHelper {
@@ -5,8 +6,6 @@ class PreferencesHelper {
 
   PreferencesHelper({required this.sharedPreferences});
 
-  static const darkTheme = 'DARK_THEME';
-  static const dailyReminder = 'DAILY_REMINDER';
 
   Future<bool> get isDarkTheme async {
     final prefs = await sharedPreferences;

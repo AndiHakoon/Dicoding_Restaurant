@@ -3,14 +3,9 @@ import 'dart:convert';
 import 'package:http/http.dart' show Client;
 import 'package:restaurant2/data/model/detail.dart';
 import 'package:restaurant2/data/model/restaurant.dart';
+import 'package:restaurant2/utils/constants.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://restaurant-api.dicoding.dev';
-  static const String listEndpoint = 'list';
-  static const String detailEndpoint = 'detail';
-  static const String searchEndpoint = 'search';
-  static const String reviewEndpoint = 'review';
-
   final Client client;
 
   ApiService(this.client);
