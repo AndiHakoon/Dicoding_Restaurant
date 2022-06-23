@@ -21,7 +21,8 @@ void main() {
       when(apiMock.list()).thenAnswer((_) async => Future.value(
           RestaurantResult.fromJson(
               json.decode(readJson('dummy_data/list_response.json')))));
-      restaurantProvider = RestaurantProvider(apiService: apiMock);
+      restaurantProvider =
+          RestaurantProvider(id: null, query: null, apiService: apiMock);
     });
 
     test('verify that fetch all restaurants json parse run as expected',
@@ -62,7 +63,8 @@ void main() {
       when(apiMock.get(id)).thenAnswer((_) async => Future.value(
           DetailResult.fromJson(
               json.decode(readJson('dummy_data/detail_response.json')))));
-      restaurantProvider = RestaurantProvider(id: id, apiService: apiMock);
+      restaurantProvider =
+          RestaurantProvider(id: id, query: null, apiService: apiMock);
     });
 
     test('verify that fetch detail of restaurants json parse run as expected',

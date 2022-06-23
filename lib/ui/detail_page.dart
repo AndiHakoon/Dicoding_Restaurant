@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart';
 import 'package:provider/provider.dart';
+import 'package:restaurant2/commons/theme.dart';
+import 'package:restaurant2/data/api/api_service.dart';
 import 'package:restaurant2/data/model/detail.dart';
+import 'package:restaurant2/data/model/restaurant.dart';
+import 'package:restaurant2/provider/database_provider.dart';
+import 'package:restaurant2/provider/preferences_provider.dart';
 import 'package:restaurant2/provider/restaurant_provider.dart';
 import 'package:restaurant2/utils/constants.dart';
 import 'package:restaurant2/utils/result_state.dart';
 import 'package:restaurant2/widget/item_bar.dart';
+import 'package:restaurant2/widget/toast.dart';
 
 class DetailPage extends StatefulWidget {
-  static const String routeName = '/restaurant_detail_page';
-
+  static const String routeName = "/detail";
   final String id;
 
   const DetailPage({Key? key, required this.id}) : super(key: key);
@@ -22,15 +28,12 @@ class _DetailPageState extends State<DetailPage> {
   var idSelected = 0;
 
   @override
-  void initState() {
-    super.initState();
-    Future.microtask(
-        () => Provider.of<RestaurantProvider>(context, listen: false));
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return _renderView();
+    return ChangeNotifierProvider<RestaurantProvider>(
+      create: (_) => RestaurantProvider(
+          id: widget.id, query: null, apiService: ApiService(Client())),
+      child: _renderView(),
+    );
   }
 
   Row listChip(Menus menu) {
@@ -59,10 +62,16 @@ class _DetailPageState extends State<DetailPage> {
       padding: const EdgeInsets.only(top: 21, left: 21),
       child: GestureDetector(
         onTap: onTap,
-        child: const Icon(
-          Icons.arrow_back,
-          color: Colors.red,
-          size: 35.0,
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          child: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).iconTheme.color,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.grey[500],
+            borderRadius: BorderRadius.circular(4.0),
+          ),
         ),
       ),
     );
@@ -71,34 +80,34 @@ class _DetailPageState extends State<DetailPage> {
   Widget _renderView() {
     return Consumer<RestaurantProvider>(
       builder: (context, state, _) {
-        if (state.state == ResultState.loading) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Loading...')),
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        } else if (state.state == ResultState.hasData) {
-          return Scaffold(body: _detailView(state.detail.detail));
-        } else {
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('Error'),
-            ),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: const [
-                  Icon(
-                    Icons.error,
-                    size: 50,
-                  ),
-                  Text(
-                    'Something went wrong !!!',
-                  ),
-                ],
+        switch (state.state) {
+          case ResultState.loading:
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text("Loading"),
               ),
-            ),
-          );
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          case ResultState.hasData:
+            return Scaffold(body: _detailView(state.detail.detail));
+          case ResultState.noData:
+            return Container();
+          case ResultState.error:
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text("Sepertinya ada masalah.."),
+              ),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.error, size: 50),
+                    Text("Sepertinya ada masalah.."),
+                  ],
+                ),
+              ),
+            );
         }
       },
     );
@@ -135,16 +144,16 @@ class _DetailPageState extends State<DetailPage> {
                     () => Navigator.pop(context),
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   top: 0,
                   right: 0,
-                  child: BookmarkButton(),
+                  child: _FavoriteButton(item: restaurant),
                 ),
                 Container(
                   height: 21,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(52),
                       topRight: Radius.circular(52),
                     ),
@@ -192,13 +201,10 @@ class _DetailPageState extends State<DetailPage> {
                     child: Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        const Icon(
-                          Icons.star,
-                          size: 43,
-                          color: Color(0xFFFFD700),
-                        ),
+                        const Icon(Icons.star,
+                            size: 43, color: Color(0xFFFFD700)),
                         Text(
-                          '${restaurant.rating}',
+                          restaurant.rating.toString(),
                           style: Theme.of(context).textTheme.headline4,
                         ),
                       ],
@@ -214,7 +220,7 @@ class _DetailPageState extends State<DetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Description',
+                    "Deskripsi",
                     style: Theme.of(context).textTheme.headline5,
                   ),
                   Text(
@@ -224,7 +230,7 @@ class _DetailPageState extends State<DetailPage> {
                   ),
                   const SizedBox(height: 21),
                   Text(
-                    'Menu',
+                    "Menu",
                     style: Theme.of(context).textTheme.headline5,
                   ),
                 ],
@@ -245,36 +251,60 @@ class _DetailPageState extends State<DetailPage> {
   }
 }
 
-class BookmarkButton extends StatefulWidget {
-  const BookmarkButton({Key? key}) : super(key: key);
+class _FavoriteButton extends StatefulWidget {
+  final Detail item;
+  const _FavoriteButton({Key? key, required this.item}) : super(key: key);
 
   @override
-  _BookmarkButtonState createState() => _BookmarkButtonState();
+  _FavoriteButtonState createState() => _FavoriteButtonState();
 }
 
-class _BookmarkButtonState extends State<BookmarkButton> {
-  bool isFavorite = false;
-
+class _FavoriteButtonState extends State<_FavoriteButton> {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => setState(() {
-        isFavorite = !isFavorite;
-      }),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 21, right: 21),
-        child: isFavorite
-            ? const Icon(
-                Icons.favorite,
-                color: Colors.red,
-                size: 35.0,
-              )
-            : const Icon(
-                Icons.favorite_border_outlined,
-                color: Colors.red,
-                size: 35.0,
-              ),
-      ),
-    );
+    Restaurant restaurant = Restaurant(
+        id: widget.item.id,
+        name: widget.item.name,
+        description: widget.item.description,
+        pictureId: widget.item.pictureId,
+        city: widget.item.city,
+        rating: widget.item.rating);
+
+    return Consumer<PreferencesProvider>(builder: (context, state, child) {
+      return Consumer<DatabaseProvider>(
+        builder: (context, provider, child) {
+          return FutureBuilder<bool>(
+            future: provider.isFavorite(widget.item.id),
+            builder: ((context, snapshot) {
+              var isFavorite = snapshot.data ?? false;
+              Icon iconSprite = isFavorite
+                  ? const Icon(Icons.favorite, color: secondaryColor)
+                  : const Icon(Icons.favorite_outline);
+
+              return GestureDetector(
+                onTap: () => setState(() {
+                  isFavorite = !isFavorite;
+
+                  if (isFavorite) {
+                    provider.addFavorite(restaurant);
+                    toast("Added");
+                  } else {
+                    provider.removeFavorite(restaurant.id);
+                    toast("Removed");
+                  }
+                }),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 21, right: 21),
+                  child: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    child: iconSprite,
+                  ),
+                ),
+              );
+            }),
+          );
+        },
+      );
+    });
   }
 }
