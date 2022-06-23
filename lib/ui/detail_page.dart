@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart';
 import 'package:provider/provider.dart';
+import 'package:restaurant2/commons/theme.dart';
 import 'package:restaurant2/data/api/api_service.dart';
 import 'package:restaurant2/data/model/detail.dart';
+import 'package:restaurant2/data/model/restaurant.dart';
+import 'package:restaurant2/provider/database_provider.dart';
+import 'package:restaurant2/provider/preferences_provider.dart';
 import 'package:restaurant2/provider/restaurant_provider.dart';
 import 'package:restaurant2/utils/constants.dart';
 import 'package:restaurant2/utils/result_state.dart';
 import 'package:restaurant2/widget/item_bar.dart';
+import 'package:restaurant2/widget/toast.dart';
 
 class DetailPage extends StatefulWidget {
   static const String routeName = "/detail";
@@ -139,10 +144,10 @@ class _DetailPageState extends State<DetailPage> {
                     () => Navigator.pop(context),
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   top: 0,
                   right: 0,
-                  child: _FavoriteButton(),
+                  child: _FavoriteButton(item: restaurant),
                 ),
                 Container(
                   height: 21,
@@ -247,40 +252,59 @@ class _DetailPageState extends State<DetailPage> {
 }
 
 class _FavoriteButton extends StatefulWidget {
-  const _FavoriteButton({Key? key}) : super(key: key);
+  final Detail item;
+  const _FavoriteButton({Key? key, required this.item}) : super(key: key);
 
   @override
   _FavoriteButtonState createState() => _FavoriteButtonState();
 }
 
 class _FavoriteButtonState extends State<_FavoriteButton> {
-  bool isFavorited = false;
-
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => setState(() {
-        isFavorited = !isFavorited;
-      }),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 21, right: 21),
-        child: Container(
-          padding: const EdgeInsets.all(8.0),
-          child: isFavorited
-              ? Icon(
-                  Icons.favorite,
-                  color: Theme.of(context).iconTheme.color,
-                )
-              : Icon(
-                  Icons.favorite_outline,
-                  color: Theme.of(context).iconTheme.color,
+    Restaurant restaurant = Restaurant(
+        id: widget.item.id,
+        name: widget.item.name,
+        description: widget.item.description,
+        pictureId: widget.item.pictureId,
+        city: widget.item.city,
+        rating: widget.item.rating);
+
+    return Consumer<PreferencesProvider>(builder: (context, state, child) {
+      return Consumer<DatabaseProvider>(
+        builder: (context, provider, child) {
+          return FutureBuilder<bool>(
+            future: provider.isFavorite(widget.item.id),
+            builder: ((context, snapshot) {
+              var isFavorite = snapshot.data ?? false;
+              Icon iconSprite = isFavorite
+                  ? const Icon(Icons.favorite, color: secondaryColor)
+                  : const Icon(Icons.favorite_outline);
+
+              return GestureDetector(
+                onTap: () => setState(() {
+                  isFavorite = !isFavorite;
+
+                  if (isFavorite) {
+                    provider.addFavorite(restaurant);
+                    toast("Added");
+                  } else {
+                    provider.removeFavorite(restaurant.id);
+                    toast("Removed");
+                  }
+                }),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 21, right: 21),
+                  child: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    child: iconSprite,
+                  ),
                 ),
-          decoration: BoxDecoration(
-            color: Colors.grey[500],
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-        ),
-      ),
-    );
+              );
+            }),
+          );
+        },
+      );
+    });
   }
 }
