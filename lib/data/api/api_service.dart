@@ -1,38 +1,32 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:http/http.dart' as http;
-
-import '../model/detail.dart';
-import '../model/restaurant.dart';
+import 'package:http/http.dart' show Client;
+import 'package:restaurant2/data/model/detail.dart';
+import 'package:restaurant2/data/model/restaurant.dart';
 
 class ApiService {
+  static const String baseUrl = 'https://restaurant-api.dicoding.dev';
+  static const String listEndpoint = 'list';
+  static const String detailEndpoint = 'detail';
+  static const String searchEndpoint = 'search';
+  static const String reviewEndpoint = 'review';
 
-  static final String _baseUrl = 'https://restaurant-api.dicoding.dev';
-  static final String _detailEndpoint = 'detail';
-  static final String _searchEndpoint = 'search';
+  final Client client;
+
+  ApiService(this.client);
 
   Future<RestaurantResult> list() async {
-    final response = await http.get(Uri.parse('$_baseUrl/list'));
-
-    try {
-      if (response.statusCode == 200) {
-        return RestaurantResult.fromJson(json.decode(response.body));
-      }
-    } on SocketException {
-      print('No Internet Access');
-    } on HttpException {
-      print('Not Found');
-    } on FormatException {
-      print('Bad Response');
+    final response = await client.get(Uri.parse('$baseUrl/$listEndpoint'));
+    if (response.statusCode == 200) {
+      return RestaurantResult.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load lists');
     }
-
-    throw Exception('Failed to load lists');
   }
 
   Future<DetailResult> get(String id) async {
     final response =
-        await http.get(Uri.parse('$_baseUrl/$_detailEndpoint/$id'));
+        await client.get(Uri.parse('$baseUrl/$detailEndpoint/$id'));
 
     if (response.statusCode == 200) {
       return DetailResult.fromJson(json.decode(response.body));
@@ -43,7 +37,7 @@ class ApiService {
 
   Future<SearchResult> search(String query) async {
     final response =
-        await http.get(Uri.parse('$_baseUrl/$_searchEndpoint?q=$query'));
+        await client.get(Uri.parse('$baseUrl/$searchEndpoint?q=$query'));
 
     if (response.statusCode == 200) {
       return SearchResult.fromJson(json.decode(response.body));
@@ -51,4 +45,5 @@ class ApiService {
       throw Exception('Failed to load');
     }
   }
+
 }

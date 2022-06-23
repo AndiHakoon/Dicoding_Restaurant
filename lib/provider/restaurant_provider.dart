@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-
-import '../data/api/api_service.dart';
-import '../data/model/detail.dart';
-import '../data/model/restaurant.dart';
-
-enum ResultState { Loading, NoData, HasData, Error }
+import 'package:restaurant2/data/api/api_service.dart';
+import 'package:restaurant2/data/model/detail.dart';
+import 'package:restaurant2/data/model/restaurant.dart';
+import 'package:restaurant2/utils/result_state.dart';
 
 class RestaurantProvider extends ChangeNotifier {
   final ApiService apiService;
   String? query;
   String? id;
 
-  RestaurantProvider(this.id, this.query, {required this.apiService}) {
+  RestaurantProvider({this.id, this.query, required this.apiService}) {
     if (id != null) {
       _fetchDetail(id!);
     } else if (query != null) {
@@ -23,9 +21,10 @@ class RestaurantProvider extends ChangeNotifier {
 
   late RestaurantResult _restaurantResult;
   late SearchResult _searchResult;
+
+  String _message = '';
+  int _count = 0;
   late DetailResult _detailResult;
-  late String _message = '';
-  late int _count = 0;
   late ResultState _state;
 
   String get message => _message;
@@ -33,27 +32,31 @@ class RestaurantProvider extends ChangeNotifier {
   int get count => _count;
 
   RestaurantResult get result => _restaurantResult;
-  SearchResult get search => _searchResult;
+
   DetailResult get detail => _detailResult;
+
+  SearchResult get search => _searchResult;
+
   ResultState get state => _state;
 
   Future<dynamic> _fetchAllRestaurant() async {
     try {
-      _state = ResultState.Loading;
+      _state = ResultState.loading;
       notifyListeners();
       final restaurant = await apiService.list();
 
       if (restaurant.restaurants.isEmpty) {
-        _state = ResultState.NoData;
+        _state = ResultState.noData;
         notifyListeners();
         return _message = 'Empty Data';
       } else {
-        _state = ResultState.HasData;
+        _state = ResultState.hasData;
         notifyListeners();
+        _count = restaurant.count;
         return _restaurantResult = restaurant;
       }
     } catch (e) {
-      _state = ResultState.Error;
+      _state = ResultState.error;
       notifyListeners();
       return _message = 'Error --> $e';
     }
@@ -61,21 +64,21 @@ class RestaurantProvider extends ChangeNotifier {
 
   Future<dynamic> _fetchRestaurantByQuery(String query) async {
     try {
-      _state = ResultState.Loading;
+      _state = ResultState.loading;
       notifyListeners();
       final response = await apiService.search(query);
 
       if ((response.founded == 0) || (response.restaurants.isEmpty)) {
-        _state = ResultState.NoData;
+        _state = ResultState.noData;
         notifyListeners();
         return _message = 'No Data Available';
       } else {
-        _state = ResultState.HasData;
+        _state = ResultState.hasData;
         notifyListeners();
         return _searchResult = response;
       }
     } catch (e) {
-      _state = ResultState.Error;
+      _state = ResultState.error;
       notifyListeners();
       return _message = 'Error --> $e';
     }
@@ -83,19 +86,18 @@ class RestaurantProvider extends ChangeNotifier {
 
   Future<dynamic> _fetchDetail(String id) async {
     try {
-      _state = ResultState.Loading;
-      notifyListeners();
-      final detail = await apiService.get(id);
+      _detailResult = await apiService.get(id);
 
-      if (detail.error == false) {
-        _state = ResultState.HasData;
-        notifyListeners();
-        return _detailResult = detail;
+      if (!_detailResult.error) {
+        _state = ResultState.hasData;
+      } else {
+        _state = ResultState.noData;
+        _message = 'Empty Data';
       }
     } catch (e) {
-      _state = ResultState.Error;
+      _state = ResultState.error;
+      _message = 'Error --> $e';
       notifyListeners();
-      return _message = 'Error --> $e';
     }
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../data/model/detail.dart';
-import '../data/model/restaurant.dart';
 
 class ItemChipBar {
   final int id;
@@ -27,7 +26,7 @@ final chipBarList = <ItemChipBar>[
                       Wrap(
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Icon(Icons.circle, size: 10, color: Color(0xFFD74141)),
+                          const Icon(Icons.circle, size: 10, color: Color(0xFFD74141)),
                           Text(
                             item.name,
                             style: GoogleFonts.poppins(
@@ -50,7 +49,7 @@ final chipBarList = <ItemChipBar>[
                       Wrap(
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Icon(Icons.circle, size: 10, color: Color(0xFFD74141)),
+                          const Icon(Icons.circle, size: 10, color: Color(0xFFD74141)),
                           Text(
                             item.name,
                             style: GoogleFonts.poppins(

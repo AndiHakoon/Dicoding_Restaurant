@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-import '../data/model/restaurant.dart';
-import '../ui/detail_page.dart';
+import 'package:provider/provider.dart';
+import 'package:restaurant2/commons/theme.dart';
+import 'package:restaurant2/data/model/restaurant.dart';
+import 'package:restaurant2/provider/database_provider.dart';
+import 'package:restaurant2/provider/preferences_provider.dart';
+import 'package:restaurant2/ui/detail_page.dart';
+import 'package:restaurant2/widget/toast.dart';
 
 class CustomListItem extends StatelessWidget {
-  const CustomListItem({required this.restaurant});
-
   final Restaurant restaurant;
+
+  const CustomListItem({Key? key, required this.restaurant}) : super(key: key);
 
   static const _url = 'https://restaurant-api.dicoding.dev/images/small';
 
@@ -38,14 +41,14 @@ class CustomListItem extends StatelessWidget {
                       if (loadingProgress == null) return child;
                       return Center(
                         child: CircularProgressIndicator(
-                            color: Theme.of(context).accentColor,
+                            color: Theme.of(context).colorScheme.secondary,
                             value: loadingProgress.expectedTotalBytes != null
                                 ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
+                                    loadingProgress.expectedTotalBytes!
                                 : null),
                       );
                     },
-                    errorBuilder: (context, e, _) => Center(
+                    errorBuilder: (context, e, _) => const Center(
                       child: Icon(Icons.error),
                     ),
                   ),
@@ -60,9 +63,7 @@ class CustomListItem extends StatelessWidget {
                 stars: restaurant.rating,
               ),
             ),
-            Flexible(
-              child: OutlinedBookmarkButton(),
-            ),
+            FavButton(item: restaurant),
           ],
         ),
       ),
@@ -95,20 +96,20 @@ class _Description extends StatelessWidget {
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.bold,
               fontSize: 15,
-              color: Color(0xFFD74141),
+              color: const Color(0xFFD74141),
             ),
           ),
           const Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
           Wrap(
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Icon(Icons.pin_drop, color: Colors.red),
+              const Icon(Icons.pin_drop, color: Colors.red),
               Text(
                 location,
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.bold,
                   fontSize: 11,
-                  color: Color(0xFF4B4B4B),
+                  color: const Color(0xFF4B4B4B),
                 ),
               ),
             ],
@@ -117,7 +118,7 @@ class _Description extends StatelessWidget {
           Wrap(
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Icon(Icons.star, color: Color(0xFFFFD700)),
+              const Icon(Icons.star, color: Color(0xFFFFD700)),
               Text(
                 '$stars',
                 style: GoogleFonts.poppins(
@@ -133,31 +134,49 @@ class _Description extends StatelessWidget {
   }
 }
 
-class OutlinedBookmarkButton extends StatefulWidget {
+class FavButton extends StatefulWidget {
+  final Restaurant item;
+
+  const FavButton({Key? key, required this.item}) : super(key: key);
+
   @override
-  _OutlinedBookmarkButtonState createState() => _OutlinedBookmarkButtonState();
+  _FavButtonState createState() => _FavButtonState();
 }
 
-class _OutlinedBookmarkButtonState extends State<OutlinedBookmarkButton> {
-  bool isFavorite = false;
-
+class _FavButtonState extends State<FavButton> {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => setState(() {
-        isFavorite = !isFavorite;
-      }),
-      child: Padding(
-        padding: EdgeInsets.only(top: 20, right: 20),
-        child: isFavorite ? Icon(
-            Icons.favorite,
-            color: Colors.red,
-            size: 24.0,
-        ) : Icon(
-            Icons.favorite_border_outlined,
-            color: Colors.red,
-            size: 24.0,),
-        ),
-    );
+    return Consumer<PreferencesProvider>(builder: (context, state, child) {
+      return Consumer<DatabaseProvider>(
+        builder: (context, provider, child) {
+          return FutureBuilder<bool>(
+              future: provider.isFavorite(widget.item.id),
+              builder: ((context, snapshot) {
+                var isFavorite = snapshot.data ?? false;
+
+                Icon iconSprite = isFavorite
+                    ? const Icon(Icons.favorite, color: secondaryColor)
+                    : const Icon(Icons.favorite_outline);
+
+                return GestureDetector(
+                  onTap: () => setState(() {
+                    isFavorite = !isFavorite;
+                    if (isFavorite) {
+                      provider.addFavorite(widget.item);
+                      toast("Added");
+                    } else {
+                      provider.removeFavorite(widget.item.id);
+                      toast("Removed");
+                    }
+                  }),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 20, right: 20),
+                    child: iconSprite,
+                  ),
+                );
+              }));
+        },
+      );
+    });
   }
 }

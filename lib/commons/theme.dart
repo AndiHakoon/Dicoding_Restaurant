@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-final Color primaryColor = Color(0xFFFFFFFF);
-final Color primaryLightColor = Color(0xFFFFFFFF);
-final Color primaryDarkColor = Color(0xFF585858);
-final Color secondaryColor = Color(0xFFF34040);
-final Color secondaryLightColor = Color(0xFFE07265);
-final Color secondaryDarkColor = Color(0xFFBA0E27);
-final Color primaryTextColor = Color(0xFF3E6ED0);
-final Color secondaryTextColor = Color(0xFF000000);
+const Color primaryColor = Color(0xFFFFFFFF);
+const Color primaryLightColor = Color(0xFFFFFFFF);
+const Color primaryDarkColor = Color(0xFF585858);
+const Color secondaryColor = Color(0xFFF34040);
+const Color secondaryLightColor = Color(0xFFE07265);
+const Color secondaryDarkColor = Color(0xFFBA0E27);
+const Color primaryTextColor = Color(0xFF3E6ED0);
+const Color secondaryTextColor = Color(0xFF000000);
 
 final TextTheme myTextTheme = TextTheme(
   headline1: GoogleFonts.poppins(
@@ -41,30 +40,28 @@ final TextTheme myTextTheme = TextTheme(
 
 ThemeData lightTheme = ThemeData(
   primaryColor: primaryColor,
-  accentColor: secondaryColor,
   scaffoldBackgroundColor: Colors.white,
   visualDensity: VisualDensity.adaptivePlatformDensity,
   textTheme: myTextTheme,
   appBarTheme: AppBarTheme(
-    textTheme: myTextTheme.apply(bodyColor: primaryTextColor),
-    elevation: 0,
+    elevation: 0, toolbarTextStyle: myTextTheme.apply(bodyColor: primaryTextColor).bodyText2, titleTextStyle: myTextTheme.apply(bodyColor: primaryTextColor).headline6,
   ),
-  bottomNavigationBarTheme: BottomNavigationBarThemeData(
+  bottomNavigationBarTheme: const BottomNavigationBarThemeData(
     selectedItemColor: secondaryColor,
     unselectedItemColor: Colors.black54,
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       primary: secondaryColor,
-      textStyle: TextStyle(),
-      shape: RoundedRectangleBorder(
+      textStyle: const TextStyle(),
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(0),
         ),
       ),
     ),
   ),
-  chipTheme: ChipThemeData(
+  chipTheme: const ChipThemeData(
     labelStyle: TextStyle(
       color: secondaryColor,
     ),
@@ -78,31 +75,29 @@ ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     backgroundColor: Color(0xFFFFE9E9),
     padding: EdgeInsets.all(2),
-  ),
+  ), colorScheme: ColorScheme.fromSwatch().copyWith(secondary: secondaryColor),
 );
 
 ThemeData darkTheme = ThemeData.dark().copyWith(
   primaryColor: primaryDarkColor,
-  accentColor: secondaryDarkColor,
   visualDensity: VisualDensity.adaptivePlatformDensity,
   textTheme: myTextTheme,
   appBarTheme: AppBarTheme(
-    textTheme: myTextTheme.apply(bodyColor: Colors.white),
-    elevation: 0,
+    elevation: 0, toolbarTextStyle: myTextTheme.apply(bodyColor: Colors.white).bodyText2, titleTextStyle: myTextTheme.apply(bodyColor: Colors.white).headline6,
   ),
-  bottomNavigationBarTheme: BottomNavigationBarThemeData(
+  bottomNavigationBarTheme: const BottomNavigationBarThemeData(
     selectedItemColor: secondaryColor,
     unselectedItemColor: Colors.blueGrey,
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       primary: secondaryColor,
-      textStyle: TextStyle(),
-      shape: RoundedRectangleBorder(
+      textStyle: const TextStyle(),
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(0),
         ),
       ),
     ),
-  ),
+  ), colorScheme: ColorScheme.fromSwatch().copyWith(secondary: secondaryDarkColor),
 );

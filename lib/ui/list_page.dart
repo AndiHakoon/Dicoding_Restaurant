@@ -1,25 +1,26 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart';
 import 'package:provider/provider.dart';
+import 'package:restaurant2/data/api/api_service.dart';
+import 'package:restaurant2/data/model/restaurant.dart';
+import 'package:restaurant2/provider/restaurant_provider.dart';
+import 'package:restaurant2/utils/result_state.dart';
+import 'package:restaurant2/widget/custom_list.dart';
+import 'package:restaurant2/widget/custom_search.dart';
 
-import '../data/api/api_service.dart';
-import '../data/model/restaurant.dart';
-import '../provider/restaurant_provider.dart';
-import '../widget/custom_list.dart';
-import '../widget/custom_search.dart';
-
-class RestaurantListPage extends StatefulWidget {
+class ListPage extends StatefulWidget {
   static String routeName = '/list_page';
 
+  const ListPage({Key? key}) : super(key: key);
+
   @override
-  _RestaurantListPageState createState() => _RestaurantListPageState();
+  _ListPageState createState() => _ListPageState();
 }
 
-class _RestaurantListPageState extends State<RestaurantListPage> {
+class _ListPageState extends State<ListPage> {
   List<Restaurant> restaurants = [];
   late Future<SearchResult> restaurantSearch;
   String query = '';
@@ -38,9 +39,9 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
   }
 
   void debounce(
-      VoidCallback callback, {
-        Duration duration = const Duration(milliseconds: 1000),
-      }) {
+    VoidCallback callback, {
+    Duration duration = const Duration(milliseconds: 1000),
+  }) {
     if (debouncer != null) {
       debouncer!.cancel();
     }
@@ -48,25 +49,26 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
   }
 
   void searchRestaurant(String query) async => debounce(() async {
-    restaurantSearch = ApiService().search(query);
+        final client = Client();
+        restaurantSearch = ApiService(client).search(query);
 
-    if (!mounted) return;
-    setState(() {
-      this.query = query;
-    });
-  });
+        if (!mounted) return;
+        setState(() {
+          this.query = query;
+        });
+      });
 
   Widget buildSearch() => SearchWidget(
-    hintText: 'Search name or city',
-    text: query,
-    onChanged: searchRestaurant,
-  );
+        hintText: 'Search name or city',
+        text: query,
+        onChanged: searchRestaurant,
+      );
 
   Widget _buildRestaurantItem() {
     return Consumer<RestaurantProvider>(builder: (context, state, _) {
-      if (state.state == ResultState.Loading) {
-        return Center(child: CircularProgressIndicator());
-      } else if (state.state == ResultState.HasData) {
+      if (state.state == ResultState.loading) {
+        return const Center(child: CircularProgressIndicator());
+      } else if (state.state == ResultState.hasData) {
         var restaurants = state.result.restaurants;
         return ListView.builder(
           shrinkWrap: true,
@@ -76,12 +78,12 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
             return CustomListItem(restaurant: restaurant);
           },
         );
-      } else if (state.state == ResultState.NoData) {
+      } else if (state.state == ResultState.noData) {
         return Center(child: Text(state.message));
       } else {
         return Center(
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(
+            const Icon(
               Icons.error,
               size: 30,
               color: Color(0xFFBDBDBD),
@@ -106,13 +108,13 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
           children: [
             Container(
               width: double.infinity,
-              margin: EdgeInsets.symmetric(horizontal: 20),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('RESTAURANT YOI',
                       style: GoogleFonts.poppins(
-                        color: Color(0xFFD74141),
+                        color: const Color(0xFFD74141),
                         fontWeight: FontWeight.bold,
                         fontSize: 28,
                       )),
@@ -136,65 +138,61 @@ class _RestaurantListPageState extends State<RestaurantListPage> {
             ),
             query == ""
                 ? Flexible(
-              child: ChangeNotifierProvider<RestaurantProvider>(
-                create: (_) => RestaurantProvider(null, null,
-                    apiService: ApiService()),
-                child: _buildRestaurantItem(),
-              ),
-            )
+                    child: _buildRestaurantItem(),
+                  )
                 : FutureBuilder(
-                future: restaurantSearch,
-                builder: (context, AsyncSnapshot<SearchResult> snapshot) {
-                  var state = snapshot.connectionState;
-                  if (state == ConnectionState.waiting) {
-                    return Expanded(
-                        child: Center(child: CircularProgressIndicator()));
-                  } else if (state == ConnectionState.done) {}
-                  if (snapshot.hasData) {
-                    return Expanded(
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: snapshot.data!.restaurants.length,
-                        itemBuilder: (context, index) {
-                          var restaurant =
-                          snapshot.data!.restaurants[index];
-                          return CustomListItem(restaurant: restaurant);
-                        },
-                      ),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error,
-                              size: 30,
-                              color: Color(0xFF4B4B4B),
-                            ),
-                            Text(
-                              'Something Went wrong!!!',
-                              style: Theme.of(context).textTheme.bodyText2,
-                            ),
-                          ]),
-                    );
-                  }
-                  return Center(
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error,
-                            size: 30,
-                            color: Color(0xFF4B4B4B),
+                    future: restaurantSearch,
+                    builder: (context, AsyncSnapshot<SearchResult> snapshot) {
+                      var state = snapshot.connectionState;
+                      if (state == ConnectionState.waiting) {
+                        return const Expanded(
+                            child: Center(child: CircularProgressIndicator()));
+                      } else if (state == ConnectionState.done) {}
+                      if (snapshot.hasData) {
+                        return Expanded(
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: snapshot.data!.restaurants.length,
+                            itemBuilder: (context, index) {
+                              var restaurant =
+                                  snapshot.data!.restaurants[index];
+                              return CustomListItem(restaurant: restaurant);
+                            },
                           ),
-                          Text(
-                            'Something Went wrong!!!',
-                            style: Theme.of(context).textTheme.bodyText2,
-                          ),
-                        ]),
-                  );
-                }),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Center(
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.error,
+                                  size: 30,
+                                  color: Color(0xFF4B4B4B),
+                                ),
+                                Text(
+                                  'Something Went wrong!!!',
+                                  style: Theme.of(context).textTheme.bodyText2,
+                                ),
+                              ]),
+                        );
+                      }
+                      return Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.error,
+                                size: 30,
+                                color: Color(0xFF4B4B4B),
+                              ),
+                              Text(
+                                'Something Went wrong!!!',
+                                style: Theme.of(context).textTheme.bodyText2,
+                              ),
+                            ]),
+                      );
+                    }),
           ],
         ),
       ),

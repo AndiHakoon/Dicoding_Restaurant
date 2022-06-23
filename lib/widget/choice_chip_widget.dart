@@ -2,32 +2,31 @@ import 'package:flutter/material.dart';
 
 class ChipsFilter extends StatefulWidget {
   final List<Filter> filters;
-  late final int selected;
+  final int selected;
   final Function() onTap;
 
   String get selectedItem {
     return selected.toString();
   }
 
-  ChipsFilter({
+  const ChipsFilter({
     Key? key,
     required this.filters,
     required this.selected,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   @override
   _ChipsFilterState createState() => _ChipsFilterState();
-
 }
 
 class _ChipsFilterState extends State<ChipsFilter> {
-  var selectedIndex;
+  var selectedIndex = 0;
 
   // Build a chip
   Widget chipBuilder(context, currentIndex) {
     Filter filter = widget.filters[currentIndex];
-    bool active = this.selectedIndex == currentIndex;
+    bool active = selectedIndex == currentIndex;
 
     return GestureDetector(
       onTap: () {
@@ -36,10 +35,10 @@ class _ChipsFilterState extends State<ChipsFilter> {
         });
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        margin: EdgeInsets.only(right: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        margin: const EdgeInsets.only(right: 10),
         decoration: BoxDecoration(
-          color: active ? Color(0xFFFF4747) : Color(0xFFFFEDED),
+          color: active ? const Color(0xFFFF4747) : const Color(0xFFFFEDED),
           borderRadius: BorderRadius.circular(30),
         ),
         child: Row(
@@ -49,7 +48,7 @@ class _ChipsFilterState extends State<ChipsFilter> {
               filter.label,
               style: TextStyle(
                 fontSize: 12,
-                color: active ? Colors.white : Color(0xFFFF4747),
+                color: active ? Colors.white : const Color(0xFFFF4747),
               ),
             ),
           ],
@@ -63,7 +62,7 @@ class _ChipsFilterState extends State<ChipsFilter> {
     // When [widget.selected] is defined, check the value and set it as
     // [selectedIndex]
     if (widget.selected >= 0 && widget.selected < widget.filters.length) {
-      this.selectedIndex = widget.selected;
+      selectedIndex = widget.selected;
     }
     super.initState();
   }
@@ -72,7 +71,7 @@ class _ChipsFilterState extends State<ChipsFilter> {
   Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: widget.filters.length,
-      itemBuilder: this.chipBuilder,
+      itemBuilder: chipBuilder,
       scrollDirection: Axis.horizontal,
     );
   }

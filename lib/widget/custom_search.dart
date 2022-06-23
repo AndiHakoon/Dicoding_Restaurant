@@ -22,18 +22,18 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final styleActive = TextStyle();
-    final styleHint = TextStyle();
+    const styleActive = TextStyle();
+    const styleHint = TextStyle();
     final style = widget.text.isEmpty ? styleHint : styleActive;
     return Container(
       height: 43,
-      margin: EdgeInsets.all(15),
-      decoration: BoxDecoration(),
+      margin: const EdgeInsets.all(15),
+      decoration: const BoxDecoration(),
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
-          prefixIcon: Icon(Icons.search),
+          prefixIcon: const Icon(Icons.search),
           suffixIcon: widget.text.isNotEmpty
               ? GestureDetector(
                   child: Icon(Icons.close, color: style.color),
@@ -43,7 +43,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                     FocusScope.of(context).requestFocus(FocusNode());
                   },
                 )
-              : Icon(null),
+              : const Icon(null),
           hintText: widget.hintText,
           hintStyle: style,
         ),

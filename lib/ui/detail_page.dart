@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-
-import '../data/api/api_service.dart';
-import '../data/model/detail.dart';
-import '../provider/restaurant_provider.dart';
-import '../widget/item_bar.dart';
+import 'package:restaurant2/data/model/detail.dart';
+import 'package:restaurant2/provider/restaurant_provider.dart';
+import 'package:restaurant2/utils/result_state.dart';
+import 'package:restaurant2/widget/item_bar.dart';
 
 class DetailPage extends StatefulWidget {
-  final String id;
-  const DetailPage({required this.id});
   static const String routeName = '/restaurant_detail_page';
+
+  final String id;
+
+  const DetailPage({Key? key, required this.id}) : super(key: key);
 
   @override
   _DetailPageState createState() => _DetailPageState();
@@ -22,14 +22,16 @@ class _DetailPageState extends State<DetailPage> {
   var idSelected = 0;
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider<RestaurantProvider>(
-      create: (_) =>
-          RestaurantProvider(widget.id, null, apiService: ApiService()),
-      child: _renderView(),
-    );
+  void initState() {
+    super.initState();
+    Future.microtask(
+        () => Provider.of<RestaurantProvider>(context, listen: false));
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return _renderView();
+  }
 
   Row listChip(Menus menu) {
     foods.addAll(menu.foods);
@@ -40,24 +42,24 @@ class _DetailPageState extends State<DetailPage> {
       children: chipBarList
           .map(
             (item) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          child: ChoiceChip(
-            label: Text(item.title),
-            selected: idSelected == item.id,
-            onSelected: (_) => setState(() => idSelected = item.id),
-          ),
-        ),
-      )
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: ChoiceChip(
+                label: Text(item.title),
+                selected: idSelected == item.id,
+                onSelected: (_) => setState(() => idSelected = item.id),
+              ),
+            ),
+          )
           .toList(),
     );
   }
 
   Widget _actionButton(BuildContext context, Function() onTap) {
     return Padding(
-      padding: EdgeInsets.only(top: 21, left: 21),
+      padding: const EdgeInsets.only(top: 21, left: 21),
       child: GestureDetector(
         onTap: onTap,
-        child: Icon(
+        child: const Icon(
           Icons.arrow_back,
           color: Colors.red,
           size: 35.0,
@@ -69,23 +71,23 @@ class _DetailPageState extends State<DetailPage> {
   Widget _renderView() {
     return Consumer<RestaurantProvider>(
       builder: (context, state, _) {
-        if (state.state == ResultState.Loading) {
+        if (state.state == ResultState.loading) {
           return Scaffold(
-            appBar: AppBar(title: Text('Loading...')),
-            body: Center(child: CircularProgressIndicator()),
+            appBar: AppBar(title: const Text('Loading...')),
+            body: const Center(child: CircularProgressIndicator()),
           );
-        } else if (state.state == ResultState.HasData) {
+        } else if (state.state == ResultState.hasData) {
           return Scaffold(body: _detailView(state.detail.detail));
         } else {
           return Scaffold(
             appBar: AppBar(
-              title: Text('Error'),
+              title: const Text('Error'),
             ),
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Icon(
                     Icons.error,
                     size: 50,
@@ -104,7 +106,7 @@ class _DetailPageState extends State<DetailPage> {
 
   Widget currentTab() {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: chipBarList[idSelected].bodyWidget,
     );
   }
@@ -130,17 +132,17 @@ class _DetailPageState extends State<DetailPage> {
                   left: 0,
                   child: _actionButton(
                     context,
-                        () => Navigator.pop(context),
+                    () => Navigator.pop(context),
                   ),
                 ),
-                Positioned(
+                const Positioned(
                   top: 0,
                   right: 0,
                   child: BookmarkButton(),
                 ),
                 Container(
                   height: 21,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(52),
@@ -150,7 +152,6 @@ class _DetailPageState extends State<DetailPage> {
                 ),
               ],
             ),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
@@ -168,13 +169,13 @@ class _DetailPageState extends State<DetailPage> {
                             fontSize: 34,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.25,
-                            color: Color(0xFFD74141),
+                            color: const Color(0xFFD74141),
                           ),
                         ),
                         Wrap(
                           crossAxisAlignment: WrapCrossAlignment.start,
                           children: [
-                            Icon(Icons.pin_drop, color: Colors.red),
+                            const Icon(Icons.pin_drop, color: Colors.red),
                             Text(restaurant.city,
                                 style: Theme.of(context).textTheme.bodyText2),
                           ],
@@ -191,7 +192,7 @@ class _DetailPageState extends State<DetailPage> {
                     child: Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.star,
                           size: 43,
                           color: Color(0xFFFFD700),
@@ -206,7 +207,7 @@ class _DetailPageState extends State<DetailPage> {
                 ],
               ),
             ),
-            SizedBox(height: 21),
+            const SizedBox(height: 21),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Column(
@@ -217,11 +218,11 @@ class _DetailPageState extends State<DetailPage> {
                     style: Theme.of(context).textTheme.headline5,
                   ),
                   Text(
-                    '''${restaurant.description}''',
+                    restaurant.description,
                     textAlign: TextAlign.justify,
                     style: Theme.of(context).textTheme.bodyText2,
                   ),
-                  SizedBox(height: 21),
+                  const SizedBox(height: 21),
                   Text(
                     'Menu',
                     style: Theme.of(context).textTheme.headline5,
@@ -234,8 +235,8 @@ class _DetailPageState extends State<DetailPage> {
               child: listChip(restaurant.menus),
             ),
             currentTab(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
             ),
           ],
         ),
@@ -245,6 +246,8 @@ class _DetailPageState extends State<DetailPage> {
 }
 
 class BookmarkButton extends StatefulWidget {
+  const BookmarkButton({Key? key}) : super(key: key);
+
   @override
   _BookmarkButtonState createState() => _BookmarkButtonState();
 }
@@ -259,14 +262,18 @@ class _BookmarkButtonState extends State<BookmarkButton> {
         isFavorite = !isFavorite;
       }),
       child: Padding(
-        padding: EdgeInsets.only(top: 21, right: 21),
-        child: isFavorite ? Icon(
+        padding: const EdgeInsets.only(top: 21, right: 21),
+        child: isFavorite
+            ? const Icon(
                 Icons.favorite,
                 color: Colors.red,
                 size: 35.0,
-        ): Icon(Icons.favorite_border_outlined,
+              )
+            : const Icon(
+                Icons.favorite_border_outlined,
                 color: Colors.red,
-                size: 35.0,),
+                size: 35.0,
+              ),
       ),
     );
   }
